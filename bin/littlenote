@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require 'date'
+require 'optparse'
+
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: littlenote [options]"
+
+  opts.on("-dDIR", "--directory=DIR", "Directory to write notes into (default: '.')") do |d|
+    options[:directory] = d
+  end
+end.parse!
+
+datetime_stamp = DateTime.now
+directory = options[:directory] || "./"
+filename = File.join(directory, "#{datetime_stamp}.md")
+
+File.open(filename, 'w+') do |f|
+  f << "# #{datetime_stamp}"
+end
+
+if ENV['EDITOR']
+  exec(ENV['EDITOR'], filename)
+end
