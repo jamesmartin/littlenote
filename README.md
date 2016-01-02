@@ -12,3 +12,9 @@ $ littlenote
 # $EDITOR opens on a new date/time-stamped file
 # Write down your thoughts...
 ```
+
+Put notes in their place:
+
+```
+$ littlenote -d ~/some/place/for/notes/
+```
