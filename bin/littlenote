@@ -1,10 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'date'
-require 'optparse'
-
 options = {}
 
+require 'optparse'
 OptionParser.new do |opts|
   opts.banner = "Usage: littlenote [options]"
 
@@ -13,14 +11,34 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-datetime_stamp = DateTime.now
-directory = options[:directory] || "./"
-filename = File.join(directory, "#{datetime_stamp}.md")
+require 'yaml'
+class LittleConfig
+  attr_reader :config
 
-File.open(filename, 'w+') do |f|
-  f << "# #{datetime_stamp}"
+  def initialize
+    @config = YAML.load(File.open(File.join(ENV['HOME'], '.littlenote'), 'r'))
+  rescue Errno::ENOENT
+    @config = {}
+  end
 end
 
-if ENV['EDITOR']
-  exec(ENV['EDITOR'], filename)
+config = LittleConfig.new.config
+
+require 'date'
+datetime_stamp = DateTime.now
+directory = options[:directory] || config['directory'] || "./"
+filename = File.join(directory, "#{datetime_stamp}.md")
+
+if $0 == __FILE__
+  begin
+    File.open(filename, 'w+') do |f|
+      f << "# #{datetime_stamp}"
+    end
+
+    if ENV['EDITOR']
+      exec(ENV['EDITOR'], filename)
+    end
+  rescue Errno::ENOENT
+    puts "There was a problem writing to: '#{filename}'"
+  end
 end
