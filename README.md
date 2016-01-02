@@ -18,3 +18,11 @@ Put notes in their place:
 ```
 $ littlenote -d ~/some/place/for/notes/
 ```
+
+## Configure
+
+Optionally, configuration lives in a YAML file called `$HOME/.littlenote`:
+
+```yaml
+directory: /Users/foo/some/place/for/notes
+```
