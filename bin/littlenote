@@ -38,7 +38,8 @@ if $0 == __FILE__
     if ENV['EDITOR']
       exec(ENV['EDITOR'], filename)
     end
-  rescue Errno::ENOENT
+  rescue Errno::ENOENT => e
     puts "There was a problem writing to: '#{filename}'"
+    puts e
   end
 end
