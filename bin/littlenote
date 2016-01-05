@@ -9,7 +9,30 @@ OptionParser.new do |opts|
   opts.on("-dDIR", "--directory=DIR", "Directory to write notes into (default: '.')") do |d|
     options[:directory] = d
   end
+
+  opts.on("-v", "--verbose", "Be more explicit about what's happening") do |v|
+    options[:verbose] = v
+  end
 end.parse!
+
+require 'date'
+class Logger
+  def initialize(out, verbose=false)
+    @out = out || STDOUT
+    @verbose = verbose
+  end
+
+  def verbose?
+    !!@verbose
+  end
+
+  def log(message)
+    @out.puts("#{DateTime.now}: #{message}") if verbose?
+  end
+end
+
+LOGGER = Logger.new(STDOUT, options[:verbose])
+LOGGER.log options
 
 require 'yaml'
 class LittleConfig
@@ -22,24 +45,55 @@ class LittleConfig
   end
 end
 
-config = LittleConfig.new.config
+module Commands
+  COMMANDS = {
+    # Add callables here to respond to 'commands'
+    "show" => -> (options={}) { LOGGER.log "showing #{options[:args]}" }
+  }
 
-require 'date'
-datetime_stamp = DateTime.now
-directory = options[:directory] || config['directory'] || "./"
-filename = File.join(directory, "#{datetime_stamp}.md")
+  def self.lookup(command)
+    LOGGER.log "looking up command: '#{command}'"
+    command = COMMANDS.fetch(command, NewNote.command)
+    LOGGER.log "found command: '#{command}'"
+    command
+  end
+
+  require 'date'
+  class NewNote
+    def self.command
+      -> (options={}) {
+        datetime_stamp = DateTime.now
+        filename = File.join(options[:directory], "#{datetime_stamp}.md")
+
+        LOGGER.log("Creating a new note: #{filename}")
+
+        begin
+          File.open(filename, 'w+') do |f|
+            f << "# #{datetime_stamp}"
+          end
+
+          if ENV['EDITOR']
+            LOGGER.log("Opening the editor: #{ENV['EDITOR']}")
+            exec(ENV['EDITOR'], filename)
+          end
+        rescue Errno::ENOENT => e
+          Logger.new(STDOUT, true)
+          logger.log "There was a problem writing to: '#{filename}'"
+          logger.log e
+        end
+      }
+    end
+  end
+end
+
+config = LittleConfig.new.config
+LOGGER.log(config)
 
 if $0 == __FILE__
-  begin
-    File.open(filename, 'w+') do |f|
-      f << "# #{datetime_stamp}"
-    end
-
-    if ENV['EDITOR']
-      exec(ENV['EDITOR'], filename)
-    end
-  rescue Errno::ENOENT => e
-    puts "There was a problem writing to: '#{filename}'"
-    puts e
-  end
+  Commands.lookup(ARGV.shift).call(
+    {
+      directory: options[:directory] || config['directory'] || "./",
+      args: ARGV
+    }
+  )
 end
