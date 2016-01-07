@@ -26,3 +26,13 @@ Optionally, configuration lives in a YAML file called `$HOME/.littlenote`:
 ```yaml
 directory: /Users/foo/some/place/for/notes
 ```
+
+## Other Commands
+
+You can easily see all of today's notes:
+
+```
+$ littlenote show
+# all today's notes are paged through less
+# ...
+```
