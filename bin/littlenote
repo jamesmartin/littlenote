@@ -46,17 +46,6 @@ class LittleConfig
 end
 
 module Commands
-  COMMANDS = {
-    # Add callables here to respond to 'commands'
-    "show" => -> (options={}) { LOGGER.log "showing #{options[:args]}" }
-  }
-
-  def self.lookup(command)
-    LOGGER.log "looking up command: '#{command}'"
-    command = COMMANDS.fetch(command, NewNote.command)
-    LOGGER.log "found command: '#{command}'"
-    command
-  end
 
   require 'date'
   class NewNote
@@ -84,6 +73,39 @@ module Commands
       }
     end
   end
+
+  class ShowNotes
+    def self.command
+      -> (options={}) {
+        date_in_question = DateTime.now.strftime('%Y-%m-%d')
+
+        LOGGER.log "showing #{options[:args]}"
+
+        Dir.chdir(options[:directory])
+
+        files = Dir.glob(File.join("**", "*.md")).select do |f|
+          /#{date_in_question}/.match(f)
+        end.map { |f| File.join(options[:directory], f) }
+
+        LOGGER.log "Found entries: #{files}"
+
+        system("cat #{files.join(' ')} | less")
+      }
+    end
+  end
+
+  COMMANDS = {
+    # Add callables here to respond to 'commands'
+    "show" => ShowNotes.command
+  }
+
+  def self.lookup(command)
+    LOGGER.log "looking up command: '#{command}'"
+    command = COMMANDS.fetch(command, NewNote.command)
+    LOGGER.log "found command: '#{command}'"
+    command
+  end
+
 end
 
 config = LittleConfig.new.config
