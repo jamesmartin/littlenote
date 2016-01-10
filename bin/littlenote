@@ -75,16 +75,39 @@ module Commands
   end
 
   class ShowNotes
+    def self.days_in_unit(unit)
+      {
+        'd' => 1,
+        'w' => 7,
+        'm' => 31, # vague, but probably good enough for now
+        'y' => 365
+      }.fetch(unit, 1)
+    end
+
+    def self.number_of_days_in(fragment)
+      return 1 if fragment.nil? || fragment == ''
+      /\A(?<number>\d+)(?<unit>[d|w|m|y])/.match(fragment) do |m|
+        LOGGER.log "number: #{m[:number]}"
+        LOGGER.log "unit: #{m[:unit]}"
+
+        (m[:number] || 1).to_i * days_in_unit(m[:unit])
+      end
+    end
+
+    def self.days_to_show(number_of_days)
+      (0..number_of_days-1).map { |n| (Date.today - n).strftime('%Y-%m-%d') }.join('|')
+    end
+
     def self.command
       -> (options={}) {
-        date_in_question = DateTime.now.strftime('%Y-%m-%d')
+        date_regex = days_to_show(number_of_days_in(options[:args].first))
 
-        LOGGER.log "showing #{options[:args]}"
+        LOGGER.log "showing #{date_regex}"
 
         Dir.chdir(options[:directory])
 
         files = Dir.glob(File.join("**", "*.md")).select do |f|
-          /#{date_in_question}/.match(f)
+          /#{date_regex}/.match(f)
         end.map { |f| File.join(options[:directory], f) }
 
         LOGGER.log "Found entries: #{files}"
