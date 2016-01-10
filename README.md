@@ -36,3 +36,20 @@ $ littlenote show
 # all today's notes are paged through less
 # ...
 ```
+
+Or see older notes by passing a query parameter in the form `number` `unit`
+(without a space):
+
+```
+$ littlenote show 3d
+# See notes from the last 3 days
+
+$ littlenote show 2w
+# See notes from the last 14 days
+
+$ littlenote show 1m
+# See notes from the last 31 days
+
+$ littlenote show 1y
+# See notes from the last 365 days
+```
