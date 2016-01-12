@@ -45,6 +45,45 @@ class LittleConfig
   end
 end
 
+module NoteFiles
+  def self.within_date_range(date_expression, directory)
+    files_matching_regex(
+      days_to_show(number_of_days_in(date_expression)),
+      directory
+    )
+  end
+
+  def self.days_in_unit(unit)
+    {
+      'd' => 1,
+      'w' => 7,
+      'm' => 31, # vague, but probably good enough for now
+      'y' => 365
+    }.fetch(unit, 1)
+  end
+
+  def self.number_of_days_in(expression)
+    return 1 if expression.nil? || expression == ''
+    /\A(?<number>\d+)(?<unit>[d|w|m|y])/.match(expression) do |m|
+      LOGGER.log "number: #{m[:number]}"
+      LOGGER.log "unit: #{m[:unit]}"
+
+      (m[:number] || 1).to_i * days_in_unit(m[:unit])
+    end
+  end
+
+  def self.days_to_show(number_of_days)
+    (0..number_of_days-1).map { |n| (Date.today - n).strftime('%Y-%m-%d') }.join('|')
+  end
+
+  def self.files_matching_regex(regex, directory)
+    Dir.chdir(directory)
+    Dir.glob(File.join("**", "*.md")).select do |f|
+      /#{regex}/.match(f)
+    end.map { |f| File.join(directory, f) }
+  end
+end
+
 module Commands
 
   require 'date'
@@ -75,49 +114,12 @@ module Commands
   end
 
   class ShowNotes
-    def self.days_in_unit(unit)
-      {
-        'd' => 1,
-        'w' => 7,
-        'm' => 31, # vague, but probably good enough for now
-        'y' => 365
-      }.fetch(unit, 1)
-    end
-
-    def self.number_of_days_in(expression)
-      return 1 if expression.nil? || expression == ''
-      /\A(?<number>\d+)(?<unit>[d|w|m|y])/.match(expression) do |m|
-        LOGGER.log "number: #{m[:number]}"
-        LOGGER.log "unit: #{m[:unit]}"
-
-        (m[:number] || 1).to_i * days_in_unit(m[:unit])
-      end
-    end
-
-    def self.days_to_show(number_of_days)
-      (0..number_of_days-1).map { |n| (Date.today - n).strftime('%Y-%m-%d') }.join('|')
-    end
-
-    def self.files_matching_regex(regex, directory)
-      Dir.chdir(directory)
-      Dir.glob(File.join("**", "*.md")).select do |f|
-        /#{regex}/.match(f)
-      end.map { |f| File.join(directory, f) }
-    end
-
-    def self.files_within_date_range(date_expression, directory)
-      files_matching_regex(
-        days_to_show(number_of_days_in(date_expression)),
-        directory
-      )
-    end
-
     def self.command
       -> (options={}) {
         date_expression = options[:args].first
         LOGGER.log "showing files matching '#{date_expression}' in '#{options[:directory]}'"
 
-        files = files_within_date_range(date_expression, options[:directory])
+        files = NoteFiles.within_date_range(date_expression, options[:directory])
 
         LOGGER.log "Found entries: #{files}"
 
@@ -132,7 +134,7 @@ module Commands
         date_expression = options[:args].first
         LOGGER.log "listing files matching '#{date_expression}' in '#{options[:directory]}'"
 
-        ShowNotes.files_within_date_range(date_expression, options[:directory]).each do |file|
+        NoteFiles.within_date_range(date_expression, options[:directory]).each do |file|
           STDOUT.puts file
         end
       }
@@ -151,7 +153,6 @@ module Commands
     LOGGER.log "found command: '#{command}'"
     command
   end
-
 end
 
 config = LittleConfig.new.config
