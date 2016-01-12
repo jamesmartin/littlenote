@@ -29,7 +29,7 @@ directory: /Users/foo/some/place/for/notes
 
 ## Other Commands
 
-You can easily see all of today's notes:
+You can easily see the content of all of today's notes:
 
 ```
 $ littlenote show
@@ -52,4 +52,23 @@ $ littlenote show 1m
 
 $ littlenote show 1y
 # See notes from the last 365 days
+```
+
+You can get a list of the file paths of all notes within a given date range:
+
+```
+$ littlenote list
+# List of all files written today
+
+$ littlenote 365d
+# List of all files written in the last 365 days
+
+$ littlenote 5w
+# List of all files written in the last 5 weeks
+
+$ littenote 9m
+# List of all files written in the last 9 months
+
+$ littenote 10y
+# List of all files written in the last 10 years
 ```
