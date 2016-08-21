@@ -4,7 +4,28 @@ options = {}
 
 require 'optparse'
 OptionParser.new do |opts|
-  opts.banner = "Usage: littlenote [command] [options]"
+  opts.banner = <<-BANNER
+  Usage: littlenote [daterange] [command] [options]
+
+  The most basic usage of littlenote takes no commands or options and simply
+  creates a new note:
+
+  littlenote
+
+  These are some common littlenote commands:
+
+  show    Page the content of previous notes through less
+  list    List the filenames of previous notes to STDOUT
+
+  Littlenote commands can be constrained using date shortcuts:
+
+  # Pages the past 3 days of notes through less
+  littlenote show 3d
+
+  # Lists the previous 1 year of notes on STDOUT
+  littlenote list 1y
+
+BANNER
 
   opts.on("-dDIR", "--directory=DIR", "Directory to write notes into (default: '.')") do |d|
     options[:directory] = d
