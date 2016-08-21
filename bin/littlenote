@@ -4,7 +4,7 @@ options = {}
 
 require 'optparse'
 OptionParser.new do |opts|
-  opts.banner = "Usage: littlenote [options]"
+  opts.banner = "Usage: littlenote [command] [options]"
 
   opts.on("-dDIR", "--directory=DIR", "Directory to write notes into (default: '.')") do |d|
     options[:directory] = d
