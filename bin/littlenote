@@ -74,6 +74,8 @@ module NoteFiles
     )
   end
 
+  private
+
   def self.days_in_unit(unit)
     {
       'd' => 1,
