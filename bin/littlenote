@@ -74,6 +74,19 @@ module NoteFiles
     )
   end
 
+  def self.latest(directory)
+    all_note_files(directory).first
+  end
+
+  def self.open_in_editor(path)
+    if ENV['EDITOR']
+      LOGGER.log("Opening #{path} in the editor: #{ENV['EDITOR']}")
+      exec(ENV['EDITOR'], path)
+    else
+      LOGGER.log("No $EDITOR set")
+    end
+  end
+
   private
 
   def self.days_in_unit(unit)
@@ -99,17 +112,62 @@ module NoteFiles
     (0..number_of_days-1).map { |n| (Date.today - n).strftime('%Y-%m-%d') }.join('|')
   end
 
-  def self.files_matching_regex(regex, directory)
+  # Internal: Returns an array of strings representing full paths to note files
+  # on the filesystem. Finds note files recursively.
+  #
+  # directory - String: The directory in which to find files.
+  # &block - Optional: Yields each full file path to the block. Returns file
+  # paths for which the block returned true
+  #
+  # Returns an array of strings
+  def self.all_note_files(directory)
     Dir.chdir(directory)
-    Dir.glob(File.join("**", "*.md")).select do |f|
+    all_files = Dir.glob(File.join("**", "*.md")).reverse
+    selected_files = all_files.select do |f|
+      if block_given?
+        yield f
+      else
+        f
+      end
+    end
+    selected_files.map { |f| File.join(directory, f) }
+  end
+
+  def self.files_matching_regex(regex, directory)
+    all_note_files(directory) do |f|
       /#{regex}/.match(f)
-    end.map { |f| File.join(directory, f) }
+    end
   end
 end
 
 module Commands
 
   require 'date'
+
+  class EditNotes
+    def self.command
+      -> (options = {}) {
+        latest_file = NoteFiles.latest(options[:directory])
+        LOGGER.log("Editing latest file: #{latest_file}")
+
+        NoteFiles.open_in_editor(latest_file)
+      }
+    end
+  end
+
+  class ListNotes
+    def self.command
+      -> (options={}) {
+        date_expression = options[:args].first
+        LOGGER.log "listing files matching '#{date_expression}' in '#{options[:directory]}'"
+
+        NoteFiles.within_date_range(date_expression, options[:directory]).each do |file|
+          STDOUT.puts file
+        end
+      }
+    end
+  end
+
   class NewNote
     def self.command
       -> (options={}) {
@@ -123,10 +181,7 @@ module Commands
             f << "# #{datetime_stamp}"
           end
 
-          if ENV['EDITOR']
-            LOGGER.log("Opening the editor: #{ENV['EDITOR']}")
-            exec(ENV['EDITOR'], filename)
-          end
+          NoteFiles.open_in_editor(filename)
         rescue Errno::ENOENT => e
           Logger.new(STDOUT, true)
           logger.log "There was a problem writing to: '#{filename}'"
@@ -151,23 +206,11 @@ module Commands
     end
   end
 
-  class ListNotes
-    def self.command
-      -> (options={}) {
-        date_expression = options[:args].first
-        LOGGER.log "listing files matching '#{date_expression}' in '#{options[:directory]}'"
-
-        NoteFiles.within_date_range(date_expression, options[:directory]).each do |file|
-          STDOUT.puts file
-        end
-      }
-    end
-  end
-
   COMMANDS = {
     # Add callables here to respond to 'commands'
-    "show" => ShowNotes.command,
-    "list" => ListNotes.command
+    "edit" => EditNotes.command,
+    "list" => ListNotes.command,
+    "show" => ShowNotes.command
   }
 
   def self.lookup(command)
