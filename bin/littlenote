@@ -100,7 +100,7 @@ module NoteFiles
 
   def self.number_of_days_in(expression)
     return 1 if expression.nil? || expression == ''
-    /\A(?<number>\d+)(?<unit>[d|w|m|y])/.match(expression) do |m|
+    /\A(?<number>\d+)(?<unit>[d|w|m|y])?/.match(expression) do |m|
       LOGGER.log "number: #{m[:number]}"
       LOGGER.log "unit: #{m[:unit]}"
 
