@@ -52,6 +52,9 @@ $ littlenote show 1m
 
 $ littlenote show 1y
 # See notes from the last 365 days
+
+$ littlenote show 1
+# Default unit is 'days'
 ```
 
 You can get a list of the file paths of all notes within a given date range:
