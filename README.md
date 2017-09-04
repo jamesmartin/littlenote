@@ -75,3 +75,13 @@ $ littenote 9m
 $ littenote 10y
 # List of all files written in the last 10 years
 ```
+
+You can start editing a new note containing the content of the previous note
+using the "cont" command:
+
+```
+$ littlenote cont
+
+# $EDITOR opens on a new date/time-stamped file
+# containing the contents of the previous file
+```
