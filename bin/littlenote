@@ -75,7 +75,10 @@ module NoteFiles
   end
 
   def self.latest(directory)
-    all_note_files(directory).first
+    files_matching_regex(
+      /\d{4}-\d{2}-\d{2}/,
+      directory
+    ).first
   end
 
   def self.open_in_editor(path)
