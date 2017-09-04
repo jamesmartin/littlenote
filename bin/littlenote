@@ -181,7 +181,7 @@ module Commands
 
         begin
           File.open(filename, 'w+') do |f|
-            f << "# #{datetime_stamp}"
+            f << "# #{datetime_stamp}\n#{options[:content]}"
           end
 
           NoteFiles.open_in_editor(filename)
@@ -190,6 +190,18 @@ module Commands
           logger.log "There was a problem writing to: '#{filename}'"
           logger.log e
         end
+      }
+    end
+  end
+
+  class Continuation
+    def self.command
+      -> (options={}) {
+        latest_file = NoteFiles.latest(options[:directory])
+        LOGGER.log("Continuing from latest file: #{latest_file}")
+        content = File.read(latest_file)
+
+        NewNote.command.call(options.merge(content: content))
       }
     end
   end
@@ -212,6 +224,7 @@ module Commands
   COMMANDS = {
     # Add callables here to respond to 'commands'
     "edit" => EditNotes.command,
+    "cont" => Continuation.command,
     "list" => ListNotes.command,
     "show" => ShowNotes.command
   }
