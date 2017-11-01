@@ -78,7 +78,7 @@ module NoteFiles
     files_matching_regex(
       /\d{4}-\d{2}-\d{2}/,
       directory
-    ).first
+    ).sort.reverse.first
   end
 
   def self.open_in_editor(path)
