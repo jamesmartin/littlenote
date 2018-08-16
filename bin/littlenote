@@ -53,7 +53,7 @@ class Logger
 end
 
 LOGGER = Logger.new(STDOUT, options[:verbose])
-LOGGER.log options
+LOGGER.log("Options: #{options}")
 
 require 'yaml'
 class LittleConfig
@@ -137,6 +137,7 @@ module NoteFiles
   end
 
   def self.files_matching_regex(regex, directory)
+    LOGGER.log("files_matching_regex: #{regex}, #{directory}")
     all_note_files(directory) do |f|
       /#{regex}/.match(f)
     end
@@ -215,6 +216,7 @@ module Commands
         files = NoteFiles.within_date_range(date_expression, options[:directory])
 
         LOGGER.log "Found entries: #{files}"
+        return if files.empty?
 
         system("cat #{files.join(' ')} | less")
       }
