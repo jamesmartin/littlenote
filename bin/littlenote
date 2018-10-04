@@ -215,10 +215,20 @@ module Commands
   class Continuation
     def self.command
       -> (options={}) {
-        latest_file = NoteFiles.latest(options[:directory])
-        LOGGER.log("Continuing from latest file: #{latest_file}")
-        content = File.read(latest_file)
+        latest_file = nil
 
+        if pattern = options[:config]["continuation_matcher"]
+          LOGGER.log("Continuation matcher pattern: #{pattern}")
+          latest_file = NoteFiles.latest_containing(pattern, options[:directory])
+          LOGGER.log("Continuing from: #{latest_file}")
+        end
+
+        if latest_file.nil?
+          latest_file = NoteFiles.latest(options[:directory])
+          LOGGER.log("Continuing from latest file: #{latest_file}")
+        end
+
+        content = File.read(latest_file)
         NewNote.command.call(options.merge(content: content))
       }
     end
@@ -262,6 +272,7 @@ LOGGER.log(config)
 if $0 == __FILE__
   Commands.lookup(ARGV.shift).call(
     {
+      config: config,
       directory: options[:directory] || config['directory'] || "./",
       args: ARGV
     }
