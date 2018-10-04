@@ -81,6 +81,23 @@ module NoteFiles
     ).sort.reverse.first
   end
 
+  def self.latest_containing(pattern, directory)
+    note_files = NoteFiles.all_note_files(directory)
+    command = "grep -l -s \"#{pattern}\" #{File.join(directory, "*.md")}"
+    LOGGER.log("System call: #{command}")
+    output = `#{command}`
+    if output
+      LOGGER.log("Raw matches:\n#{output}")
+      filenames = output.split("\n")
+      LOGGER.log("Count: #{filenames.size}")
+      latest = filenames.sort.last
+      LOGGER.log("Latest: #{latest}")
+      return latest
+    else
+      LOGGER.log("No note file found matching: #{pattern} in #{directory}")
+    end
+  end
+
   def self.open_in_editor(path)
     if ENV['EDITOR']
       LOGGER.log("Opening #{path} in the editor: #{ENV['EDITOR']}")
