@@ -240,7 +240,7 @@ module Commands
         date_expression = options[:args].first
         LOGGER.log "showing files matching '#{date_expression}' in '#{options[:directory]}'"
 
-        files = NoteFiles.within_date_range(date_expression, options[:directory])
+        files = NoteFiles.within_date_range(date_expression, options[:directory]).sort
 
         LOGGER.log "Found entries: #{files}"
         return if files.empty?
