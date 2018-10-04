@@ -234,6 +234,14 @@ module Commands
     end
   end
 
+  class Test
+    def self.command
+      -> (options={}) {
+        LOGGER.log("Testing! Testing! Is this thing on?")
+      }
+    end
+  end
+
   class ShowNotes
     def self.command
       -> (options={}) {
@@ -255,7 +263,8 @@ module Commands
     "edit" => EditNotes.command,
     "cont" => Continuation.command,
     "list" => ListNotes.command,
-    "show" => ShowNotes.command
+    "show" => ShowNotes.command,
+    "test" => Test.command
   }
 
   def self.lookup(command)
