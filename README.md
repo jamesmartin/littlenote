@@ -85,3 +85,20 @@ $ littlenote cont
 # $EDITOR opens on a new date/time-stamped file
 # containing the contents of the previous file
 ```
+
+You can configure the `cont` command to only continue from files containing a
+matched pattern.
+
+Edit your `~/.littlenote` config file to include the pattern:
+
+```
+directory: /some/path/to/my/files
+continuation_matcher: my-pattern
+```
+
+Note: the continuation match pattern is supplied as an argument to grep. You
+can test your pattern by running something like this:
+
+```
+grep "my-pattern" /some/path/to/my/files/*.md
+```
