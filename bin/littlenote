@@ -59,8 +59,9 @@ require 'yaml'
 class LittleConfig
   attr_reader :config
 
-  def initialize
-    @config = YAML.load(File.open(File.join(ENV['HOME'], '.littlenote'), 'r'))
+  def initialize(path = nil)
+    config_file = File.readable?(path) ? path : File.join(ENV["HOME"], ".littlenote")
+    @config = YAML.load(File.open(config_file, "r"))
   rescue Errno::ENOENT
     @config = {}
   end
@@ -275,7 +276,9 @@ module Commands
   end
 end
 
-config = LittleConfig.new.config
+# By default look for a ".littlenote" confiuration file in the current
+# directory.
+config = LittleConfig.new(File.join(Dir.pwd, ".littlenote")).config
 LOGGER.log(config)
 
 if $0 == __FILE__
